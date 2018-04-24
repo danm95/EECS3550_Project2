@@ -28,12 +28,12 @@ def parseFileDATA(fileData):
         elif (x == ";") & (domain == 0):
             parsedData.append(temp)
             temp = ""
-    print(parsedData)
+
     return parsedData
 
 
 def Infix_to_Postfix(expression, postDomain):
-    print("The expression passed to Infix_to_Postfix is: " + expression)
+
 
     operators = ["+", "*"]
     Parentheses = ["(", ")"]
@@ -41,6 +41,9 @@ def Infix_to_Postfix(expression, postDomain):
     postfix = ""
     expressionPostfix = []
     setsPostfix = {}
+    listExpressionPostfix = []
+    postlist = []
+    inList = 0
 
     expression = expression.split("=")
 
@@ -78,13 +81,9 @@ def Infix_to_Postfix(expression, postDomain):
         expressionPostfix.append(postfix)
         postfix = ""
 
-    print("Postfix expression: " + str(expressionPostfix))
+    return expressionPostfix
 
-    listExpressionPostfix = []
-    postlist = []
-    inList = 0
-
-    if postDomain == "<sets>":
+    '''if postDomain == "<sets>":
         for x in expressionPostfix:
             for y in x:
                 if y == "{":
@@ -105,7 +104,8 @@ def Infix_to_Postfix(expression, postDomain):
 
         expressionPostfix = listExpressionPostfix
 
-    return expressionPostfix
+        return expressionPostfix
+    else:'''
 
 
 def evaluateExp(exp, expDomain):
@@ -155,24 +155,30 @@ def evaluateExp(exp, expDomain):
                 else:
                     evalStack.append(y)
             result.append(evalStack[len(evalStack) - 1])
+    temp = []
+    setsEvalTemp1 = {}
+    setsEvalTemp2 = {}
+    setsEvalStack = []
+    setsBool = 0
 
     elif expDomain == "<sets>":
         for x in exp:
             for y in x:
-                if y[0] in evalOper:
-                    evalResultTemp = ""
-                    evalSet1.append(evalStack[len(evalStack)-1])
-                    evalStack.pop()
-                    evalSet2.append(evalStack[len(evalStack)-1])
-                    evalStack.pop()
-                    if y[0] == "*":
-                        evalStack.append(evalSet1.union(evalSet2))
-                    else:
-                        evalStack.append(evalSet1.intersection(evalSet2))
+                if y == "{":
+                    setsBool = 1
+                elif y == "}":
+                    setsEvalStack.append(set(temp))
+                    setsBool = 0
+                elif (y not in evalOper) & (y != ",") & setsBool:
+                    temp.append(y)
                 else:
-                    evalStack.append(y)
-            result.append(evalStack[len(evalStack) - 1])
+                        setsEvalTemp1 = setsEvalStack[len(setsEvalStack) - 1]
+                        evalStack.pop()
+                        setsEvalTemp2 = setsEvalStack[len(setsEvalStack) - 1]
+                        evalStack.pop()
 
+                        if y == "*":
+                            setsEvalTemp1.union(setsEvalTemp2)
     else:
         for x in exp:
             for y in x:
@@ -195,33 +201,50 @@ def evaluateExp(exp, expDomain):
                     evalStack.append(y)
             result.append(evalStack[len(evalStack) - 1])
 
-    print(str(result))
+    return result
 
 
-expressionFile = open('ExpressionTest.txt', 'r')
+def checkResult(result):
+    first = result[0]
+    T = "True"
+    F = "False"
+    for x in result:
+        if x != first:
+            return "False"
+    return "True"
+
+
+expressionFile = open('ExpressionTest2.txt', 'r')
 expressionData = expressionFile.read()
 expressionFile.close()
-
+domain = ['<strings>', '<algebra>', '<sets>', '<boolean>']
 parsedFileData = parseFileDATA(expressionData)
 expPostfix = []
-
-listofsets.append((list(a_list), a_list[0]))
-
-
-expPostfix = Infix_to_Postfix(parsedFileData[5], '<sets>')
-
-evaluateExp(expPostfix, '<sets>')
+expResults = []
+currentDomain = []
+index = 0
 
 
+'''expPostfix = Infix_to_Postfix(parsedFileData[5], '<sets>')
+evaluateExp(expPostfix, '<sets>')'''
 
+for x in parsedFileData:
 
-'''for x in parsedFileData:
     if x in domain:
         currentDomain.append(x)
+        index = index + 1
     elif x == "</>":
         currentDomain.pop()
+        index = index + 1
     else:
-       expPostfix = Infix_to_Postfix(parsedFileData[1])'''
+        print("Current Domain: " + currentDomain[len(currentDomain) - 1])
+        print("Infix Expression: " + str(x))
+        expPostfix = Infix_to_Postfix(str(x), currentDomain[len(currentDomain) - 1])
+        print("Postfix Expression: " + str(expPostfix))
+        expResults = evaluateExp(expPostfix, currentDomain[len(currentDomain) - 1])
+        print("Evaluate Expression Results: " + str(expResults))
+        print("True/False: " + checkResult(expResults))
+        index = index + 1
 
 
 
