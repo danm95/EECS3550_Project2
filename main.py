@@ -155,30 +155,38 @@ def evaluateExp(exp, expDomain):
                 else:
                     evalStack.append(y)
             result.append(evalStack[len(evalStack) - 1])
-    temp = []
-    setsEvalTemp1 = {}
-    setsEvalTemp2 = {}
-    setsEvalStack = []
-    setsBool = 0
 
+    postlist = []
+    setsPostfix = {}
+    inList = 0
+    
     elif expDomain == "<sets>":
-        for x in exp:
-            for y in x:
-                if y == "{":
-                    setsBool = 1
-                elif y == "}":
-                    setsEvalStack.append(set(temp))
-                    setsBool = 0
-                elif (y not in evalOper) & (y != ",") & setsBool:
-                    temp.append(y)
-                else:
-                        setsEvalTemp1 = setsEvalStack[len(setsEvalStack) - 1]
-                        evalStack.pop()
-                        setsEvalTemp2 = setsEvalStack[len(setsEvalStack) - 1]
-                        evalStack.pop()
+    for x in exp:
+        for y in x:                   
+            if y == "{":
+                inList = 1
+            elif (y != ",") & (inList == 1) & (y != "}"):
+                postlist.append(y)
+            elif y == "}":
+                setsPostfix = set(postlist)
+                evalStack.append(setsPostfix)
+                postlist.clear()
+                inList = 0
 
-                        if y == "*":
-                            setsEvalTemp1.union(setsEvalTemp2)
+            elif y in evalOper:
+                evalSet1 = evalStack[len(evalStack)-1]
+                evalStack.pop()
+                evalSet2 = evalStack[len(evalStack)-1]
+                evalStack.pop()
+                if y[0] == "*":
+                    evalStack.append(evalSet1.union(evalSet2))
+                    evalsetResult = evalStack[len(evalStack)-1]                           
+                else:
+                    evalStack.append(evalSet1.intersection(evalSet2))
+                    evalsetResult = evalStack[len(evalStack)-1]                            
+        result.append(evalsetResult)
+        evalStack.clear()
+
     else:
         for x in exp:
             for y in x:
