@@ -1,96 +1,268 @@
-from tkinter import filedialog
-from tkinter import *
-import subprocess
+
+def parseFileDATA(fileData):
+    temp = ""
+    domain = 0
+    parsedData = []
+
+    fileData = [x.strip() for x in fileData]
+
+    for x in fileData:
+
+        if (x == "<") & (len(temp) == 0):
+            temp = temp + x
+            domain = 1
+        elif x == "<":
+            parsedData.append(temp)
+            temp = ""
+            temp = temp + x
+            domain = 1
+        elif (domain == 1) & (x != "") & (x != ">"):
+            temp = temp + x
+        elif x == ">":
+            temp = temp + x
+            parsedData.append(temp)
+            temp = ""
+            domain = 0
+        elif (x != "") & (x != ";") & (domain == 0):
+            temp = temp + x
+        elif (x == ";") & (domain == 0):
+            parsedData.append(temp)
+            temp = ""
+
+    return parsedData
 
 
-class Interface:
-
-    fileNames = []
-    fileSave = "Select a save location"
-
-    def __init__(self, master):
-
-        master.title("EECS:3540_Project2")
-
-        self.label_1 = Label(master, text="Select C++ Standard:")
-        self.label_1.grid(row=0, column=0, sticky=E)
-
-        self.variable = StringVar(master)
-        self.variable.set("c++98")  # default value
-
-        self.stdOption = OptionMenu(master, self.variable, "c++98", "c++11", "c++14", "c++17")
-        self.stdOption.grid(row=0, column=1, sticky=W)
-
-        self.CB = StringVar(master)
-        self.CB.set(0)  # default value
-
-        self.debugMode = Checkbutton(master, text="Enable Debugging", variable=self.CB)
-        self.debugMode.grid(row=1, column=0, sticky=W)
-
-        self.compileButton = Button(master, text="Compile")
-        self.compileButton.grid(row=2, column=0, sticky=W+E+N+S)
-
-        self.quitButton = Button(master, text="Quit", command=master.quit)
-        self.quitButton.grid(row=2, column=1, sticky=W+E+N+S)
-
-        self.saveFileButton = Button(master, text="Save File", command=self.saveFile)
-        self.saveFileButton.grid(row=0, column=2, padx=10)
-
-        self.label_1 = Label(master, text="Please select a file")
-        self.label_1.grid(row=0, column=3, padx=20)
-
-        self.addFileButton = Button(master, text="Add File", command=self.addFile)
-        self.addFileButton.grid(row=1, column=2, padx=10, sticky=W+E+N+S)
-
-        self.label_2 = Label(master, text="Please select a file")
-        self.label_2.grid(row=1, column=3, padx=20)
-
-    def addFile(self):
-        self.fileNames.append(filedialog.askopenfilename(initialdir="/", title="Select file",
-                                                   filetypes=(("C++ Source", "*.cpp"), ("C/C++ Header", "*.h"), ("all files", "*.*"))))
-        print(self.fileNames)
-        self.fileListUpdate()
-
-    def fileListUpdate(self):
-
-        filelistLen = len(self.fileNames)
-        print(filelistLen)
-        lb = Label(root, text=self.fileNames[filelistLen-1])
-        lb.grid(row=(filelistLen+1), column=3)
-
-    def saveFile(self):
-        self.fileSave = filedialog.asksaveasfilename(initialdir="/", title="Select file")
-        print(self.fileNames)
-        self.label_1.config(text=self.fileSave)
+def Infix_to_Postfix(expression, postDomain):
 
 
-def compile(event, fileNames, savelocation, std, debug):
-    g = ""
-    std = "-std=" + std.get()
-    savelocation = "-o " + savelocation
-    fileString = ""
-    output = ""
+    operators = ["+", "*"]
+    Parentheses = ["(", ")"]
+    stack = []
+    postfix = ""
+    expressionPostfix = []
+    setsPostfix = {}
+    listExpressionPostfix = []
+    postlist = []
+    inList = 0
 
-    for i in range(len(fileNames)):
-        fileString = fileNames[i] + " "
+    expression = expression.split("=")
 
-    if debug.get() == "1":
-        g = "-g"
+    for y in expression:
+        for z in y:
 
-    compileCommand = "g++ " + std + " " + g + " " + savelocation + " " + fileString
+            if z in Parentheses:                                    #Manage Parentheses
+                if z == "(":
+                    stack.append("(")
+                else:
+                    while stack[len(stack)-1] != "(":
+                        if stack[len(stack)-1] not in Parentheses:
+                            postfix = postfix + stack[len(stack)-1]
+                        stack.pop()
+                    stack.pop()
 
-    try:
-        output = subprocess.check_output(compileCommand, shell=True,  stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        print("Something " + str(e.returncode))
+            elif z in operators:                                      #Add Operator
+                if len(stack) != 0:
+                    if (stack[len(stack)-1] == "+") & (z == "+") | (stack[len(stack)-1] == "*") & (z == "+"):
+                        postfix = postfix + stack[len(stack) - 1]
+                        stack.pop()
+                        stack.append(z)
+                    else:
+                        stack.append(z)
+                else:
+                    stack.append(z)
 
-    print("Compile Command: " + compileCommand)
+            else:                                                   #Add Operand
+                postfix = postfix + z
+
+        while len(stack) != 0:
+            postfix = postfix + stack[len(stack) - 1]
+            stack.pop()
+
+        expressionPostfix.append(postfix)
+        postfix = ""
+
+    return expressionPostfix
+
+    '''if postDomain == "<sets>":
+        for x in expressionPostfix:
+            for y in x:
+                if y == "{":
+                    inList = 1
+                elif (y not in operators) & (y != ",") & (inList == 1) & (y != "}"):
+                    postlist.append(y)
+                elif y == "}":
+                    listExpressionPostfix.append(postlist)
+                    setsPostfix = set(postlist)
+                    listExpressionPostfix.append(setsPostfix)
+                    postlist.clear()
+                    inList = 0
+                elif y in operators:
+                    postlist.append(y)
+                    setsPostfix = set(postlist)
+                    listExpressionPostfix.append(setsPostfix)
+                    postlist.clear()
+
+        expressionPostfix = listExpressionPostfix
+
+        return expressionPostfix
+    else:'''
 
 
-root = Tk()
+def evaluateExp(exp, expDomain):
+    evalOper = ["+", "*"]
+    evalStack = []
+    evalSet1 = []
+    evalSet2 = []
+    result = []
+    evalTemp1 = ""
+    evalTemp2 = ""
+    evalResultTemp = ""
 
-GUI = Interface(root)
+    if expDomain == "<algebra>":
+        for x in exp:
+            for y in x:
+                if y in evalOper:
+                    evalTemp1 = evalStack[len(evalStack)-1]
+                    evalStack.pop()
+                    evalTemp2 = evalStack[len(evalStack)-1]
+                    evalStack.pop()
+                    if y == "*":
+                        evalResultTemp = str(int(evalTemp1) * int(evalTemp2))
+                        evalStack.append(evalResultTemp)
+                    else:
+                        evalResultTemp = str(int(evalTemp1) + int(evalTemp2))
+                        evalStack.append(evalResultTemp)
+                else:
+                    evalStack.append(y)
+            result.append(evalStack[len(evalStack)-1])
 
-GUI.compileButton.bind("<Button-1>", lambda event: compile(event, GUI.fileNames, GUI.fileSave, GUI.variable, GUI.CB))
+    elif expDomain == "<strings>":
+        for x in exp:
+            for y in x:
+                if y in evalOper:
+                    evalResultTemp = ""
+                    evalTemp1 = evalStack[len(evalStack)-1]
+                    evalStack.pop()
+                    evalTemp2 = evalStack[len(evalStack) - 1]
+                    evalStack.pop()
+                    if y == "*":
+                        for z in range(int(evalTemp1)):
+                            evalResultTemp = evalResultTemp + evalTemp2
+                        evalStack.append(evalResultTemp)
+                    else:
+                        evalResultTemp = evalTemp2 + evalTemp1
+                        evalStack.append(evalResultTemp)
+                else:
+                    evalStack.append(y)
+            result.append(evalStack[len(evalStack) - 1])
+    temp = []
+    setsEvalTemp1 = {}
+    setsEvalTemp2 = {}
+    setsEvalStack = []
+    setsBool = 0
 
-root.mainloop()
+    elif expDomain == "<sets>":
+        for x in exp:
+            for y in x:
+                if y == "{":
+                    setsBool = 1
+                elif y == "}":
+                    setsEvalStack.append(set(temp))
+                    setsBool = 0
+                elif (y not in evalOper) & (y != ",") & setsBool:
+                    temp.append(y)
+                else:
+                        setsEvalTemp1 = setsEvalStack[len(setsEvalStack) - 1]
+                        evalStack.pop()
+                        setsEvalTemp2 = setsEvalStack[len(setsEvalStack) - 1]
+                        evalStack.pop()
+
+                        if y == "*":
+                            setsEvalTemp1.union(setsEvalTemp2)
+    else:
+        for x in exp:
+            for y in x:
+                if y in evalOper:
+                    evalTemp1 = evalStack[len(evalStack)-1]
+                    evalStack.pop()
+                    evalTemp2 = evalStack[len(evalStack)-1]
+                    evalStack.pop()
+                    if y == "*":
+                        if (evalTemp1 == "1") & (evalTemp2 == "1"):
+                            evalStack.append("1")
+                        else:
+                            evalStack.append("0")
+                    elif y == "+":
+                        if (evalTemp1 == "1") | (evalTemp2 == "1"):
+                            evalStack.append("1")
+                        else:
+                            evalStack.append("0")
+                else:
+                    evalStack.append(y)
+            result.append(evalStack[len(evalStack) - 1])
+
+    return result
+
+
+def checkResult(result):
+    first = result[0]
+    T = "True"
+    F = "False"
+    for x in result:
+        if x != first:
+            return "False"
+    return "True"
+
+
+expressionFile = open('ExpressionTest2.txt', 'r')
+expressionData = expressionFile.read()
+expressionFile.close()
+domain = ['<strings>', '<algebra>', '<sets>', '<boolean>']
+parsedFileData = parseFileDATA(expressionData)
+expPostfix = []
+expResults = []
+currentDomain = []
+index = 0
+
+
+'''expPostfix = Infix_to_Postfix(parsedFileData[5], '<sets>')
+evaluateExp(expPostfix, '<sets>')'''
+
+for x in parsedFileData:
+
+    if x in domain:
+        currentDomain.append(x)
+        index = index + 1
+    elif x == "</>":
+        currentDomain.pop()
+        index = index + 1
+    else:
+        print("Current Domain: " + currentDomain[len(currentDomain) - 1])
+        print("Infix Expression: " + str(x))
+        expPostfix = Infix_to_Postfix(str(x), currentDomain[len(currentDomain) - 1])
+        print("Postfix Expression: " + str(expPostfix))
+        expResults = evaluateExp(expPostfix, currentDomain[len(currentDomain) - 1])
+        print("Evaluate Expression Results: " + str(expResults))
+        print("True/False: " + checkResult(expResults))
+        index = index + 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
