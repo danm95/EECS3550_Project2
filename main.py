@@ -1,7 +1,3 @@
-
-import collections 
-compare = lambda x, y: collections.Counter(x) == collections.Counter(y)
-
 def parseFileDATA(fileData):
     temp = ""
     domain = 0
@@ -85,30 +81,6 @@ def Infix_to_Postfix(expression, postDomain):
         postfix = ""
 
     return expressionPostfix
-
-    '''if postDomain == "<sets>":
-        for x in expressionPostfix:
-            for y in x:
-                if y == "{":
-                    inList = 1
-                elif (y not in operators) & (y != ",") & (inList == 1) & (y != "}"):
-                    postlist.append(y)
-                elif y == "}":
-                    listExpressionPostfix.append(postlist)
-                    setsPostfix = set(postlist)
-                    listExpressionPostfix.append(setsPostfix)
-                    postlist.clear()
-                    inList = 0
-                elif y in operators:
-                    postlist.append(y)
-                    setsPostfix = set(postlist)
-                    listExpressionPostfix.append(setsPostfix)
-                    postlist.clear()
-
-        expressionPostfix = listExpressionPostfix
-
-        return expressionPostfix
-    else:'''
 
 
 def evaluateExp(exp, expDomain):
@@ -216,20 +188,8 @@ def evaluateExp(exp, expDomain):
     return result
 
 
-def checkResult(result, domain):
-    if domain == '<sets>':
-        first = []
-        first[result[0]]
-        for x in result:
-            if result[x] == first:
-                return "True"
-        return "False"
-
-
-    else:
+def checkResult(result):
         first = result[0]
-        T = "True"
-        F = "False"
         for x in result:
             if x != first:
                 return "False"
@@ -247,9 +207,6 @@ currentDomain = []
 index = 0
 
 
-'''expPostfix = Infix_to_Postfix(parsedFileData[5], '<sets>')
-evaluateExp(expPostfix, '<sets>')'''
-
 for x in parsedFileData:
 
     if x in domain:
@@ -265,8 +222,12 @@ for x in parsedFileData:
         print("Postfix Expression: " + str(expPostfix))
         expResults = evaluateExp(expPostfix, currentDomain[len(currentDomain) - 1])
         print("Evaluate Expression Results: " + str(expResults))
-        print("True/False: " + checkResult(expResults, currentDomain[len(currentDomain) - 1]))
+        print("True/False: " + checkResult(expResults))
         index = index + 1
+
+
+
+
 
 
 
