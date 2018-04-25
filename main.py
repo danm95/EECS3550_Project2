@@ -161,53 +161,53 @@ def evaluateExp(exp, expDomain):
     inList = 0
     
     elif expDomain == "<sets>":
-    for x in exp:
-        for y in x:                   
-            if y == "{":
-                inList = 1
-            elif (y != ",") & (inList == 1) & (y != "}"):
-                postlist.append(y)
-            elif y == "}":
-                setsPostfix = set(postlist)
-                evalStack.append(setsPostfix)
-                postlist.clear()
-                inList = 0
-
-            elif y in evalOper:
-                evalSet1 = evalStack[len(evalStack)-1]
-                evalStack.pop()
-                evalSet2 = evalStack[len(evalStack)-1]
-                evalStack.pop()
-                if y[0] == "*":
-                    evalStack.append(evalSet1.union(evalSet2))
-                    evalsetResult = evalStack[len(evalStack)-1]                           
-                else:
-                    evalStack.append(evalSet1.intersection(evalSet2))
-                    evalsetResult = evalStack[len(evalStack)-1]                            
-        result.append(evalsetResult)
-        evalStack.clear()
-
-    else:
         for x in exp:
-            for y in x:
-                if y in evalOper:
-                    evalTemp1 = evalStack[len(evalStack)-1]
+            for y in x:                   
+                if y == "{":
+                    inList = 1
+                elif (y != ",") & (inList == 1) & (y != "}"):
+                    postlist.append(y)
+                elif y == "}":
+                    setsPostfix = set(postlist)
+                    evalStack.append(setsPostfix)
+                    postlist.clear()
+                    inList = 0
+
+                elif y in evalOper:
+                    evalSet1 = evalStack[len(evalStack)-1]
                     evalStack.pop()
-                    evalTemp2 = evalStack[len(evalStack)-1]
+                    evalSet2 = evalStack[len(evalStack)-1]
                     evalStack.pop()
-                    if y == "*":
-                        if (evalTemp1 == "1") & (evalTemp2 == "1"):
-                            evalStack.append("1")
-                        else:
-                            evalStack.append("0")
-                    elif y == "+":
-                        if (evalTemp1 == "1") | (evalTemp2 == "1"):
-                            evalStack.append("1")
-                        else:
-                            evalStack.append("0")
-                else:
-                    evalStack.append(y)
-            result.append(evalStack[len(evalStack) - 1])
+                    if y[0] == "*":
+                        evalStack.append(evalSet1.union(evalSet2))
+                        evalsetResult = evalStack[len(evalStack)-1]                           
+                    else:
+                        evalStack.append(evalSet1.intersection(evalSet2))
+                        evalsetResult = evalStack[len(evalStack)-1]                            
+            result.append(evalsetResult)
+            evalStack.clear()
+
+        else:
+            for x in exp:
+                for y in x:
+                    if y in evalOper:
+                        evalTemp1 = evalStack[len(evalStack)-1]
+                        evalStack.pop()
+                        evalTemp2 = evalStack[len(evalStack)-1]
+                        evalStack.pop()
+                        if y == "*":
+                            if (evalTemp1 == "1") & (evalTemp2 == "1"):
+                                evalStack.append("1")
+                            else:
+                                evalStack.append("0")
+                        elif y == "+":
+                            if (evalTemp1 == "1") | (evalTemp2 == "1"):
+                                evalStack.append("1")
+                            else:
+                                evalStack.append("0")
+                    else:
+                        evalStack.append(y)
+                result.append(evalStack[len(evalStack) - 1])
 
     return result
 
