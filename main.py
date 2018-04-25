@@ -1,4 +1,7 @@
 
+import collections 
+compare = lambda x, y: collections.Counter(x) == collections.Counter(y)
+
 def parseFileDATA(fileData):
     temp = ""
     domain = 0
@@ -117,6 +120,10 @@ def evaluateExp(exp, expDomain):
     evalTemp1 = ""
     evalTemp2 = ""
     evalResultTemp = ""
+    postlist = []
+    setsPostfix = {}
+    inList = 0
+    
 
     if expDomain == "<algebra>":
         for x in exp:
@@ -156,36 +163,33 @@ def evaluateExp(exp, expDomain):
                     evalStack.append(y)
             result.append(evalStack[len(evalStack) - 1])
 
-    postlist = []
-    setsPostfix = {}
-    inList = 0
-    
-    elif expDomain == "<sets>":
-    for x in exp:
-        for y in x:                   
-            if y == "{":
-                inList = 1
-            elif (y != ",") & (inList == 1) & (y != "}"):
-                postlist.append(y)
-            elif y == "}":
-                setsPostfix = set(postlist)
-                evalStack.append(setsPostfix)
-                postlist.clear()
-                inList = 0
 
-            elif y in evalOper:
-                evalSet1 = evalStack[len(evalStack)-1]
-                evalStack.pop()
-                evalSet2 = evalStack[len(evalStack)-1]
-                evalStack.pop()
-                if y[0] == "*":
-                    evalStack.append(evalSet1.union(evalSet2))
-                    evalsetResult = evalStack[len(evalStack)-1]                           
-                else:
-                    evalStack.append(evalSet1.intersection(evalSet2))
-                    evalsetResult = evalStack[len(evalStack)-1]                            
-        result.append(evalsetResult)
-        evalStack.clear()
+    elif expDomain == "<sets>":
+        for x in exp:
+            for y in x:                   
+                if y == "{":
+                    inList = 1
+                elif (y != ",") & (inList == 1) & (y != "}"):
+                    postlist.append(y)
+                elif y == "}":
+                    setsPostfix = set(postlist)
+                    evalStack.append(setsPostfix)
+                    postlist.clear()
+                    inList = 0
+
+                elif y in evalOper:
+                    evalSet1 = evalStack[len(evalStack)-1]
+                    evalStack.pop()
+                    evalSet2 = evalStack[len(evalStack)-1]
+                    evalStack.pop()
+                    if y[0] == "*":
+                        evalStack.append(evalSet1.union(evalSet2))
+                        evalsetResult = evalStack[len(evalStack)-1]                           
+                    else:
+                        evalStack.append(evalSet1.intersection(evalSet2))
+                        evalsetResult = evalStack[len(evalStack)-1]                            
+            result.append(evalsetResult)
+            evalStack.clear()
 
     else:
         for x in exp:
@@ -212,17 +216,27 @@ def evaluateExp(exp, expDomain):
     return result
 
 
-def checkResult(result):
-    first = result[0]
-    T = "True"
-    F = "False"
-    for x in result:
-        if x != first:
-            return "False"
-    return "True"
+def checkResult(result, domain):
+    if domain == '<sets>':
+        first = []
+        first[result[0]]
+        for x in result:
+            if result[x] == first:
+                return "True"
+        return "False"
 
 
-expressionFile = open('ExpressionTest2.txt', 'r')
+    else:
+        first = result[0]
+        T = "True"
+        F = "False"
+        for x in result:
+            if x != first:
+                return "False"
+        return "True"
+
+
+expressionFile = open('ExpressionTest.txt', 'r')
 expressionData = expressionFile.read()
 expressionFile.close()
 domain = ['<strings>', '<algebra>', '<sets>', '<boolean>']
@@ -251,8 +265,30 @@ for x in parsedFileData:
         print("Postfix Expression: " + str(expPostfix))
         expResults = evaluateExp(expPostfix, currentDomain[len(currentDomain) - 1])
         print("Evaluate Expression Results: " + str(expResults))
-        print("True/False: " + checkResult(expResults))
+        print("True/False: " + checkResult(expResults, currentDomain[len(currentDomain) - 1]))
         index = index + 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
